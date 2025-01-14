@@ -1,0 +1,13 @@
+cobyqa
+contourpy
+fonttools
+ipykernel
+ipython
+kiwisolver
+matplotlib
+numpy
+pillow
+pyparsing
+scipy
+tqdm
+google-cloud-storage
