@@ -8,8 +8,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # Imports benchmarking routine and problem
 from benchmarking import *
 
-SUBMISSIONS_DIR = "admin/submissions/ddo_hackathon"
-RESULTS_DIR = "admin/results"
+SUBMISSIONS_DIR = "day_1_ddo/ddo_hackathon/admin/submissions/ddo_hackathon"
+RESULTS_DIR = "day_1_ddo/ddo_hackathon/admin/results"
 
 # Ensure the results directory exists
 os.makedirs(RESULTS_DIR, exist_ok=True)

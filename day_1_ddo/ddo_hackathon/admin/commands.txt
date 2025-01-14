@@ -1,0 +1,2 @@
+# Get files from bucket
+gcloud storage cp -r gs://ddo_hackathon/ C:\Users\Emma\Documents\Winter_CDT_EP_Materials\01_hackathon\admin\submissions
