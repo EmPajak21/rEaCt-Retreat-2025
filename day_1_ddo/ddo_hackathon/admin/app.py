@@ -4,8 +4,6 @@ from io import StringIO
 import importlib
 import sys
 import unittest
-import pandas as pd
-from dotenv import load_dotenv
 from google.cloud import storage
 from google.oauth2 import service_account
 
