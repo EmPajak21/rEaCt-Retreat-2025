@@ -109,6 +109,16 @@ def run_unit_tests(code, team_name):
         sys.stdout = sys.__stdout__
 
 
+def get_leaderboard_html(bucket_name="ddo_hackathon", file_name="leaderboard.html"):
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+    )
+    client = storage.Client(project="intense-pixel-446617-e2", credentials=credentials)
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(file_name)
+    return blob.download_as_text()
+
+
 def main():
     """Main function to run the Streamlit app with tabs."""
     tabs = st.tabs(["Submission Portal", "Leaderboard"])
@@ -151,8 +161,11 @@ def main():
     # Leaderboard Tab
     with tabs[1]:
         st.title("Leaderboard")
-        st.markdown("This tab will display the leaderboard in the future.")
-        st.info("Leaderboard functionality is under development. Check back later!")
-
+        try:
+            leaderboard_html = get_leaderboard_html()
+            st.components.v1.html(leaderboard_html, height=600, scrolling=True)
+        except Exception as e:
+            st.error(f"Could not load the leaderboard: {e}")
+    
 if __name__ == "__main__":
     main()
