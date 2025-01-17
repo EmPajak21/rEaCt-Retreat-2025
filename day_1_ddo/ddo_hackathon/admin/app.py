@@ -110,6 +110,16 @@ def run_unit_tests(code, team_name):
 
 
 def get_leaderboard_html(bucket_name="ddo_hackathon", file_name="leaderboard.html"):
+    """
+    Downloads the leaderboard HTML file from a Google Cloud Storage bucket.
+
+    Args:
+        bucket_name: str, optional. Google Cloud Storage bucket.
+        file_name: str, optional. Name of the file to download from the bucket. 
+
+    Returns:
+        str: The content of the html file as a string.
+    """
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
     )

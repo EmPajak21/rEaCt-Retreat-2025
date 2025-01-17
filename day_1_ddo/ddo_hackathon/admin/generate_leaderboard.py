@@ -74,14 +74,12 @@ def run_benchmark():
     algorithms_test = load_student_algorithms()
     print(algorithms_test)
     if not algorithms_test:
+        # Returns print statement if no student algorithm files found
         print("No valid your_alg functions found. Exiting.")
         return
     
     # Define additional parameters for ML4CE_uncon_eval
     home_dir = ""
-    # N_x_l = [2,5,7]
-    # f_eval_l = [50,60,70]
-
     N_x_l = [2]
     f_eval_l = [50]
     functions_test = ["Rosenbrock_f","Ackley_f"]
@@ -114,6 +112,13 @@ def run_benchmark():
 
 
 def get_leaderboard():
+    """
+    Runs DDO benchmarking, takes algorithm trajectories and 
+    generates the leaderboard as an HTML string.
+
+    Returns:
+        str: An HTML representation of the leaderboard.
+    """
     traj = run_benchmark()
     html_leaderboard = ML4CE_uncon_leaderboard(traj, as_html=True)
     return html_leaderboard
@@ -122,7 +127,7 @@ def get_leaderboard():
 def upload_to_bucket(html_leaderboard, bucket_name="ddo_hackathon", file_name="leaderboard.html"):
     """
     Uploads the provided HTML string to a Cloud Storage bucket as the leaderboard file.
-    Loads credentials from the environment variable 'GOOGLE_APPLICATION_CREDENTIALS'.
+    Path to local json file containing credentials.
     """
     # Load credentials from the provided file path
     credentials = service_account.Credentials.from_service_account_file("day_1_ddo\ddo_hackathon\intense-pixel-446617-e2-9a9d3fd50dd4.json")
