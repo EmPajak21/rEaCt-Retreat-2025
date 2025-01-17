@@ -946,48 +946,88 @@ def ML4CE_uncon_contours(
     else:
         plt.show()
 
-def ML4CE_uncon_leaderboard(trajectories):
+def ML4CE_uncon_leaderboard(trajectories, as_html=False):
+    """
+    Generates leaderboards from trajectories data.
+
+    Args:
+        trajectories (dict): Nested dictionary with trajectory data.
+        as_html (bool): If True, output is HTML string (otherwise printed).
+
+    Returns:
+        If as_html=True, returns HTML string for all leaderboards; otherwise, returns None.
+    """
+    html_parts = []
+
+    # Add some basic styling
+    html_parts.append("""
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        h2 {
+            color: #ff4500;
+            text-align: center;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+        }
+        th {
+            background-color: #444;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #333;
+        }
+        tr:nth-child(odd) {
+            background-color: #444;
+        }
+        tr:hover {
+            background-color: #555;
+        }
+    </style>
+    """)
+
+    skip_keys = {
+        "all means", "all 90", "all 10", "f_list", "x_list",
+        "mean", "median", "q 0", "q 100", "rand_shift"
+    }
+
     for dim_key in trajectories:
-        # Potential dimension key looks like: 'D2', 'D5', etc.
         for func_key in trajectories[dim_key]:
-            
-            # -- Filter out aggregator statistics like "all means", "mean", etc. --
-            # We'll only proceed if `func_key` is a function name
-            skip_keys = {
-                "all means", "all 90", "all 10", "f_list", "x_list",
-                "mean", "median", "q 0", "q 100", "rand_shift"
-            }
             if func_key in skip_keys:
                 continue
-            
-            # We'll store final objective values for each algorithm in a scoreboard
+
             scoreboard = {}
-            
-            # Loop over each algorithm in this function/dimension
             for alg_key, runs in trajectories[dim_key][func_key].items():
-                # Similarly skip aggregator keys for each algorithm
                 if alg_key in skip_keys:
                     continue
-                
-                # 'runs' is typically a list of shape (reps, <num_iterations>).
-                # We convert to np.array to slice the final iteration easily.
-                arr = np.array(runs)  
-                # arr[:, -1] = final objective value from each repetition
+                arr = np.array(runs)
                 final_vals = arr[:, -1]
-                
                 scoreboard[alg_key] = scoreboard.get(alg_key, []) + list(final_vals)
-            
+
             if not scoreboard:
-                # If no data was found (e.g., aggregator only), skip
                 continue
-            
-            # Compute average final objective over reps for each algorithm
+
             ranking = {alg: np.mean(scoreboard[alg]) for alg in scoreboard}
-            
-            # Sort algorithms in ascending order of average final value
             sorted_ranking = sorted(ranking.items(), key=lambda x: x[1])
-            
-            # Print the local leaderboard
-            print(f"\n=== Leaderboard for {func_key} | {dim_key} ===")
+
+            # Add leaderboard section
+            html_parts.append(f"<h2>Leaderboard for {func_key} | {dim_key}</h2>")
+            html_parts.append("<table>")
+            html_parts.append("<tr><th>Rank</th><th>Algorithm</th><th>Avg Final Value</th></tr>")
             for i, (alg, avg_val) in enumerate(sorted_ranking, start=1):
-                print(f"{i}. {alg} --> Avg Final Value: {avg_val:.5f}")
+                html_parts.append(f"<tr><td>{i}</td><td>{alg}</td><td>{avg_val:.5f}</td></tr>")
+            html_parts.append("</table>")
+
+    if as_html:
+        return "\n".join(html_parts)
