@@ -17,7 +17,7 @@ import numpy as np
 # (f, N_x: int, bounds: array[array[float]], N: int = 100) -> array(N_X), float 
 def Random_search(f, n_p, bounds_rs, iter_rs):
     '''
-    This function is a naive optimization routine that randomly samples the 
+    This function is a naive optimisation routine that randomly samples the 
     allowed space and returns the best value.
 
     n_p: dimensions
