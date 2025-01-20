@@ -7,7 +7,7 @@ import numpy as np
 
 def Random_search(f, n_p, bounds_rs, iter_rs):
     '''
-    This function is a naive optimization routine that randomly samples the 
+    This function is a naive optimisation routine that randomly samples the 
     allowed space and returns the best value.
 
     n_p: dimensions
