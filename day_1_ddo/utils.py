@@ -144,7 +144,7 @@ def plot_model_and_loss(Vmax=15, Km=1.8):
 
 def visualize_ofat(func, initial_guess=[1, 1, 1, 1]):
     """
-    Visualizes the One-Factor-At-a-Time (OFAT) optimization process by iteratively updating
+    Visualises the One-Factor-At-a-Time (OFAT) optimisation process by iteratively updating
     one parameter at a time while keeping others fixed at their initial values. Each plot shows
     the function's response to changes in one parameter.
 
