@@ -18,7 +18,9 @@ RESULTS_DIR = "day_1_ddo/ddo_hackathon/admin/results"
 # Ensure the results directory exists
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-# Function to process submissions and run your_alg from each
+# Update the credentials path if needed (use forward slashes for cross-platform compatibility)
+CREDENTIALS_FILE = "day_1_ddo/ddo_hackathon/intense-pixel-446617-e2-9a9d3fd50dd4.json"
+
 def load_student_algorithms(bucket_name="ddo_hackathon", prefix=""):
     """
     Load all Python submissions from a Google Cloud Storage bucket, dynamically import
@@ -26,15 +28,15 @@ def load_student_algorithms(bucket_name="ddo_hackathon", prefix=""):
     
     Args:
         bucket_name (str): Name of the Google Cloud Storage bucket.
-        prefix (str): Optional prefix to filter files in the bucket.
-
+        prefix (str): Folder prefix to filter files in the bucket (e.g., "day1/t1" or "day1/t2").
+    
     Returns:
         list: A list of `your_alg` functions from each submission file, renamed to the file name.
     """
     algorithms = []
     
     # Initialize Google Cloud Storage client
-    credentials = service_account.Credentials.from_service_account_file("day_1_ddo\ddo_hackathon\intense-pixel-446617-e2-9a9d3fd50dd4.json")
+    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE)
     client = storage.Client(credentials=credentials)
     bucket = client.bucket(bucket_name)
     blobs = bucket.list_blobs(prefix=prefix)
@@ -69,20 +71,28 @@ def load_student_algorithms(bucket_name="ddo_hackathon", prefix=""):
 
     return algorithms
 
-def run_benchmark():
-    # Load all student algorithms
-    algorithms_test = load_student_algorithms()
-    print(algorithms_test)
+def run_benchmark(prefix=""):
+    """
+    Loads student algorithms using the provided prefix and runs the benchmark routine.
+    
+    Args:
+        prefix (str): Folder prefix to filter student submissions (e.g., "day1/t1" or "day1/t2").
+    
+    Returns:
+        trajectories: The trajectories produced by the benchmark routine.
+    """
+    # Load all student algorithms filtered by the prefix (track folder)
+    algorithms_test = load_student_algorithms(prefix=prefix)
+    print(f"Algorithms loaded for prefix '{prefix}':", algorithms_test)
     if not algorithms_test:
-        # Returns print statement if no student algorithm files found
-        print("No valid your_alg functions found. Exiting.")
-        return
+        print("No valid your_alg functions found. Exiting benchmark for this track.")
+        return None
     
     # Define additional parameters for ML4CE_uncon_eval
     home_dir = ""
     N_x_l = [2]
     f_eval_l = [50]
-    functions_test = ["Rosenbrock_f","Ackley_f"]
+    functions_test = ["Rosenbrock_f", "Ackley_f"]
     reps = 3
     
     # Run the benchmark
@@ -96,6 +106,7 @@ def run_benchmark():
             home_dir=home_dir,
             SafeData=False
         )
+        # Optionally, generate graphs (this may create files in your results directory)
         ML4CE_uncon_graph_abs(
             trajectories,
             algorithms_test,
@@ -105,46 +116,57 @@ def run_benchmark():
             timestamp,
             SafeFig=False,
         )
-        print("Benchmark completed successfully.")
+        print("Benchmark completed successfully for prefix", prefix)
     except Exception as e:
-        print(f"Error running benchmark: {e}")
+        print(f"Error running benchmark for prefix {prefix}: {e}")
+        return None
     return trajectories
 
-
-def get_leaderboard():
+def get_leaderboard(prefix=""):
     """
-    Runs DDO benchmarking, takes algorithm trajectories and 
+    Runs benchmarking for a given track (prefix), takes algorithm trajectories and 
     generates the leaderboard as an HTML string.
-
+    
+    Args:
+        prefix (str): Folder prefix corresponding to the track.
+    
     Returns:
         str: An HTML representation of the leaderboard.
     """
-    traj = run_benchmark()
+    traj = run_benchmark(prefix=prefix)
+    if traj is None:
+        return "<h1 style='color: red;'>No algorithms uploaded and benchmarked yet</h1>"
     html_leaderboard = ML4CE_uncon_leaderboard(traj, as_html=True)
     return html_leaderboard
-
 
 def upload_to_bucket(html_leaderboard, bucket_name="ddo_hackathon", file_name="leaderboard.html"):
     """
     Uploads the provided HTML string to a Cloud Storage bucket as the leaderboard file.
-    Path to local json file containing credentials.
+    
+    Args:
+        html_leaderboard (str): The HTML content of the leaderboard.
+        bucket_name (str): The name of the Cloud Storage bucket.
+        file_name (str): The destination file name (including folder path if required).
     """
     # Load credentials from the provided file path
-    credentials = service_account.Credentials.from_service_account_file("day_1_ddo\ddo_hackathon\intense-pixel-446617-e2-9a9d3fd50dd4.json")
+    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE)
     
-    # Initialize the Storage client (ADC is used here automatically after providing the credentials)
+    # Initialize the Storage client
     client = storage.Client(credentials=credentials)
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(file_name)
     blob.upload_from_string(html_leaderboard, content_type="text/html")
     print(f"Uploaded leaderboard to gs://{bucket_name}/{file_name}")
 
-
 if __name__ == "__main__":
-    # Generate leaderboard HTML
-    print("Starting leaderboard generation...")
-    leaderboard_html = get_leaderboard()
+    # Generate and upload leaderboard for Track 1
+    print("Starting leaderboard generation for Track 1...")
+    leaderboard_html_t1 = get_leaderboard(prefix="day1/t1")
+    upload_to_bucket(leaderboard_html_t1, file_name="day1/leaderboard_t1.html")
+    print("Track 1 leaderboard update complete.")
 
-    # Upload the generated HTML to Cloud Storage
-    upload_to_bucket(leaderboard_html)
-    print("Leaderboard update complete.")
+    # Generate and upload leaderboard for Track 2
+    print("Starting leaderboard generation for Track 2...")
+    leaderboard_html_t2 = get_leaderboard(prefix="day1/t2")
+    upload_to_bucket(leaderboard_html_t2, file_name="day1/leaderboard_t2.html")
+    print("Track 2 leaderboard update complete.")
