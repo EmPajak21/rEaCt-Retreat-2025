@@ -20,9 +20,18 @@ TERM_NAMES = [
 DEFAULT_PARAMS = {
     "mu_max": 0.5,
     "Ks": 2.0,
-    "Ki": 1.0,
+    "Kp": 1.0,
     "Yxs": 0.4,
-    "Kp": np.nan,
+    "Ki": np.nan,
+}
+
+
+DAY3_PARAMS = {
+    "mu_max": 0.8,  # Changed from 0.5
+    "Ks": 3.0,  # Changed from 2.0
+    "Kp": 2.0,  # Changed from 1.0
+    "Yxs": 0.5,  # Changed from 0.4
+    "Ki": 1.5,  # New parameter
 }
 
 
@@ -72,13 +81,7 @@ def true_model_day3(y, t):
     mask = [0, 1, 1, 0, 1, 0, 0, 0, 0]
 
     # Modified true mechanism: Hill kinetics with substrate inhibition and non-competitive product inhibition
-    mu_max = 0.8  # Changed from 0.5
-    Ks = 3.0  # Changed from 2.0
-    Ki = 2.0  # Changed from 1.0
-    Yxs = 0.5  # Changed from 0.4
-    Kp = 1.5  # New parameter
-
-    params = [mu_max, Ks, Ki, Yxs, Kp]
+    params = list(DAY3_PARAMS.values())
     dX, dS, dP, dI = candidate_models(y=y, t=t, params=params, mask=mask)
     return [dX, dS, dP, dI]
 
@@ -110,7 +113,7 @@ def candidate_models(
         Derivatives [dX/dt, dS/dt, dP/dt, dI/dt] at the given time point.
     """
     X, S, P, I = y
-    mu_max, Ks, Ki, Yxs, Kp = params
+    mu_max, Ks, Kp, Yxs, Ki = params
 
     growth = mu_max * X
     # Growth terms
@@ -129,7 +132,7 @@ def candidate_models(
 
     # Product Inhibition Factor (Competitive)
     if mask[3]:
-        growth *= Ki / (Ki + P)
+        growth *= (Ks + S) / (S + Ks + (Ks * P / Kp)) # This term is modified so that is can be combined with mask 0 or 1 for a correct inhibition
 
     # Non-Competitive Product Inhibition
     if mask[4]:
@@ -139,19 +142,18 @@ def candidate_models(
     if mask[5]:
         growth *= 1 / (1 + I / Ki)
 
-    # Double Substrate Limited Factor
+    # Double Substrate Limited Factor (Inhibitor is a second substrate in case of an inhibitor)
     if mask[6]:
         growth *= I / (Ki + I)
 
     # Substrate Threshold Activation
     if mask[7]:
         S_threshold = 0.5
-        growth *= 1 if S > S_threshold else 0
+        growth *= (S - S_threshold) / (Ks + (S - S_threshold)) if S > S_threshold else 0
 
     # Inhibitor Saturation
     if mask[8]:
-        n_inhibitor = 1
-        growth *= 1 / (1 + (I / Ki) ** n_inhibitor)
+        growth *= 1 / (1 + (P / (P + Ki)))
 
     # Calculate derivatives
     dX = growth
