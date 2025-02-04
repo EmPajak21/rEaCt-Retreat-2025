@@ -327,6 +327,7 @@ def genetic_algorithm(
     generations: int = 10,
     population_size: int = 30,
     mutation_rate: float = 0.1,
+    best_container: Dict[str, Any] = None  # <-- added parameter
 ) -> Dict[str, Any]:
     """
     Genetic algorithm for model selection.
@@ -406,7 +407,11 @@ def genetic_algorithm(
             )
             if best_errors:
                 print("Errors by experiment:", best_errors)
-
+            
+            # Update the shared container, if provided
+            if best_container is not None:
+                best_container["best"] = best_individual
+                
         # Track history
         fitness_history.append(best_fitness)
         param_history.append(
