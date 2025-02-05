@@ -9,22 +9,24 @@ from google.cloud import storage
 from google.oauth2 import service_account
 
 
-def save_valid_submission(code, team_name, bucket_name="ddo_hackathon"):
+def save_valid_submission(code, team_name, track, bucket_name="ddo_hackathon"):
     """
     Save a valid submission to Google Cloud Storage.
 
     Loads the service account credentials from Streamlit secrets,
     initializes the storage client, and uploads the submitted code
-    as a Python file to the specified bucket.
+    as a Python file to the specified bucket under a folder corresponding
+    to the selected track.
 
     Args:
         code (str): The Python code to upload.
         team_name (str): The team name to create a unique filename.
+        track (str): The selected track ("Track 1" or "Track 2").
         bucket_name (str, optional): The name of the GCS bucket.
             Defaults to "ddo_hackathon".
 
     Returns:
-        str: The name of the uploaded file.
+        str: The name (including folder path) of the uploaded file.
     """
     # Load credentials from Streamlit secrets (expects a JSON-compatible dict)
     credentials = service_account.Credentials.from_service_account_info(
@@ -36,11 +38,17 @@ def save_valid_submission(code, team_name, bucket_name="ddo_hackathon"):
     )
     bucket = client.bucket(bucket_name)
 
-    # Create the file name based on the team name
-    file_name = f"{team_name}_submission.py"
+    # Determine folder path based on track selection.
+    if track == "Track 1":
+        folder_path = "day1/t1"
+    else:
+        folder_path = "day1/t2"
+
+    # Create the file name based on the team name and track folder.
+    file_name = f"{folder_path}/{team_name}_submission.py"
     blob = bucket.blob(file_name)
 
-    # Upload the code to the bucket with the appropriate content type
+    # Upload the code to the bucket with the appropriate content type.
     blob.upload_from_string(code, content_type="text/x-python")
     return file_name
 
@@ -118,7 +126,7 @@ def get_leaderboard_html(bucket_name="ddo_hackathon", file_name="leaderboard.htm
         file_name: str, optional. Name of the file to download from the bucket. 
 
     Returns:
-        str: The content of the html file as a string.
+        str: The content of the HTML file as a string.
     """
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
@@ -131,7 +139,8 @@ def get_leaderboard_html(bucket_name="ddo_hackathon", file_name="leaderboard.htm
 
 def main():
     """Main function to run the Streamlit app with tabs."""
-    tabs = st.tabs(["Submission Portal", "Leaderboard"])
+    # Create three tabs: one for submission and two for leaderboards.
+    tabs = st.tabs(["Submission Portal", "Leaderboard Track 1", "Leaderboard Track 2"])
 
     # Submission Tab
     with tabs[0]:
@@ -141,6 +150,12 @@ def main():
         team_name = st.text_input(
             "Enter your team name:",
             help="Enter your team's name before submitting code."
+        )
+        # Add a radio button for track selection.
+        track = st.radio(
+            "Select Your Track:",
+            options=["Track 1", "Track 2"],
+            help="Choose the track you want to participate in."
         )
         st.markdown("### Paste Your Python Code Below:")
         code_input = st.text_area("Python Code", "", height=600, key="code_input")
@@ -161,21 +176,32 @@ def main():
 
                 with status_container:
                     if "All tests passed successfully!" in test_results:
-                        valid_save_path = save_valid_submission(code_input, team_name)
+                        valid_save_path = save_valid_submission(code_input, team_name, track)
                         st.success(
                             f"{test_results}\n\nSubmission saved to {valid_save_path}."
                         )
                     else:
                         st.error(test_results)
 
-    # Leaderboard Tab
+    # Leaderboard Tab for Track 1
     with tabs[1]:
-        st.title("Leaderboard")
+        st.title("Leaderboard - Track 1")
         try:
-            leaderboard_html = get_leaderboard_html()
+            # Assuming your Track 1 leaderboard HTML file is named "leaderboard_t1.html"
+            leaderboard_html = get_leaderboard_html(file_name="day1/leaderboard_t1.html")
             st.components.v1.html(leaderboard_html, height=600, scrolling=True)
         except Exception as e:
-            st.error(f"Could not load the leaderboard: {e}")
+            st.error("No leaderboard generated yet!")
+
+    # Leaderboard Tab for Track 2
+    with tabs[2]:
+        st.title("Leaderboard - Track 2")
+        try:
+            # Assuming your Track 2 leaderboard HTML file is named "leaderboard_t2.html"
+            leaderboard_html = get_leaderboard_html(file_name="day1/leaderboard_t2.html")
+            st.components.v1.html(leaderboard_html, height=600, scrolling=True)
+        except Exception as e:
+            st.error("No leaderboard generated yet!")
     
 if __name__ == "__main__":
     main()
