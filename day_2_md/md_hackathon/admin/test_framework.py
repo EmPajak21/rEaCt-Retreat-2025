@@ -2,24 +2,32 @@ import os
 import sys
 import unittest
 import inspect
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Callable
 
-# Add the parent directory to sys.path so the student_submission module can be imported.
+# Add parent directories to the Python path.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(PARENT_DIR)
+
+# Now you can do:
+import bio_model
+from bio_model import candidate_models, fitness_function
 
 class TestGeneticAlgorithm(unittest.TestCase):
     def test_genetic_algorithm_signature(self):
         """
-        Test that the function `genetic_algorithm` is defined with the required signature:
+        Test that the function `genetic_algorithm` is defined with the expected signature:
         
             def genetic_algorithm(
                 training_data: List[Dict[str, Any]],
-                *,
-                generations: int = 10,
-                population_size: int = 30,
-                mutation_rate: float = 0.1,
+                candidate_models: Callable = candidate_models,
+                basic_fitness_function: Callable = fitness_function,
                 best_container: Dict[str, Any] = None
             ) -> Dict[str, Any]:
+        
+        Also, ensure that `population_size` is not an input argument.
         """
         try:
             from student_submission import genetic_algorithm
@@ -28,34 +36,28 @@ class TestGeneticAlgorithm(unittest.TestCase):
         
         sig = inspect.signature(genetic_algorithm)
         params = sig.parameters
-
-        # Verify that the first parameter 'training_data' exists.
+        
+        # Verify that 'training_data' exists.
         self.assertIn("training_data", params, "Missing parameter 'training_data'")
         
-        # Expected keyword-only parameters and their default values.
-        expected_kwargs = {
-            "generations": 10,
-            "population_size": 30,
-            "mutation_rate": 0.1,
+        # Expected parameters and their default values.
+        expected_defaults = {
+            "candidate_models": candidate_models,
+            "basic_fitness_function": fitness_function,
             "best_container": None,
         }
-        for name, default in expected_kwargs.items():
+        
+        for name, default_val in expected_defaults.items():
             self.assertIn(name, params, f"Missing parameter '{name}'")
             param = params[name]
-            # Ensure the parameter is keyword-only.
-            self.assertEqual(
-                param.kind,
-                inspect.Parameter.KEYWORD_ONLY,
-                f"Parameter '{name}' should be keyword-only"
-            )
-            # Check that the default value is as expected.
             self.assertEqual(
                 param.default,
-                default,
-                f"Default value for '{name}' must be {default}"
+                default_val,
+                f"Default value for '{name}' must be {default_val}"
             )
         
-        # Optionally check the return annotation if provided.
+
+        # Optionally, verify the return annotation if provided.
         expected_return = Dict[str, Any]
         if sig.return_annotation is not inspect.Signature.empty:
             self.assertEqual(
@@ -64,25 +66,19 @@ class TestGeneticAlgorithm(unittest.TestCase):
                 "Return annotation should be Dict[str, Any]"
             )
     
-    def test_genetic_algorithm_output(self):
+    def test_global_population_size(self):
         """
-        Test that `genetic_algorithm` returns a dictionary.
+        Test that there is a global variable named POPULATION_SIZE defined in the student's submission,
+        and that it is an integer with a value less than or equal to 20.
         """
-        from student_submission import genetic_algorithm
+        import student_submission
         
-        # Create a dummy training_data list (adjust as needed for a minimal valid structure).
-        dummy_training_data: List[Dict[str, Any]] = []
-        # Create a dummy best_container dictionary.
-        dummy_best_container: Dict[str, Any] = {}
-        
-        result = genetic_algorithm(
-            dummy_training_data,
-            generations=10,
-            population_size=30,
-            mutation_rate=0.1,
-            best_container=dummy_best_container,
-        )
-        self.assertIsInstance(result, dict, "genetic_algorithm should return a dictionary")
+        self.assertTrue(hasattr(student_submission, "POPULATION_SIZE"),
+                        "Global variable 'POPULATION_SIZE' is not defined in your submission!")
+        pop_size = getattr(student_submission, "POPULATION_SIZE")
+        self.assertIsInstance(pop_size, int, "POPULATION_SIZE should be an integer!")
+        self.assertLessEqual(pop_size, 20, "POPULATION_SIZE must be less than or equal to 20!")
+    
 
 if __name__ == "__main__":
     unittest.main()

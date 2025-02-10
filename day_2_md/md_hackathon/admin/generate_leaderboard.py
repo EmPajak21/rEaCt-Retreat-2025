@@ -104,9 +104,7 @@ def run_genetic_algorithm_with_timeout(
     training_data: List[Dict[str, Any]],
     serialized_alg: bytes,
     timeout: int = 10,
-    generations: int = 1000,
     population_size: int = 20,
-    mutation_rate: float = 0.1,
 ) -> Optional[Dict[str, Any]]:
     """
     Runs the student algorithm in a separate process with a timeout.
@@ -124,9 +122,7 @@ def run_genetic_algorithm_with_timeout(
         kwargs={
             "serialized_alg": serialized_alg,
             "training_data": training_data,
-            "generations": generations,
             "population_size": population_size,
-            "mutation_rate": mutation_rate,
             "best_container": best_container,
             "output_queue": output_queue,
         },
@@ -226,9 +222,7 @@ def evaluate_all_student_algorithms(
             training_data=training_data,
             serialized_alg=serialized_alg,
             timeout=5,  # Adjust timeout as needed (e.g., 5 seconds)
-            generations=1000,
             population_size=20,
-            mutation_rate=0.1,
         )
 
         if best_individual is None:
@@ -330,12 +324,12 @@ def run_benchmark(prefix: str = "", file_name: str = "leaderboard.html") -> None
 
 
 if __name__ == "__main__":
-    # Generate and upload leaderboard for Track 1
-    print("Starting leaderboard generation for Track 1...")
-    run_benchmark(prefix="day2/t1", file_name="leaderboard_t1")
-    print("Track 1 leaderboard update complete.")
+    # # Generate and upload leaderboard for Track 1
+    # print("Starting leaderboard generation for Track 1...")
+    # run_benchmark(prefix="day2/t1", file_name="leaderboard_t1")
+    # print("Track 1 leaderboard update complete.")
 
     # Generate and upload leaderboard for Track 2
     print("\n\n Starting leaderboard generation for Track 2...")
-    run_benchmark(prefix="day2/t2", file_name="leaderboard_t2")
+    run_benchmark(prefix="day2/t1", file_name="leaderboard_t1")
     print("Track 2 leaderboard update complete.")

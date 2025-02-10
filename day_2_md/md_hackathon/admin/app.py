@@ -8,6 +8,11 @@ import streamlit as st
 from google.cloud import storage
 from google.oauth2 import service_account
 
+# Add parent directories to the Python path.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from bio_model import candidate_models, fitness_function
+
 
 def save_valid_submission(code, team_name, track, bucket_name="ddo_hackathon"):
     """
