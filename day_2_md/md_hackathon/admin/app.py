@@ -194,7 +194,7 @@ def main():
         st.title("Leaderboard - Track 1")
         try:
             # Assuming your Track 1 leaderboard HTML file is named "leaderboard_t1.html"
-            leaderboard_html = get_leaderboard_html(file_name="day2/leaderboard_t1.html")
+            leaderboard_html = get_leaderboard_html(file_name="day2/t1/leaderboard_t1.html")
             st.components.v1.html(leaderboard_html, height=600, scrolling=True)
         except Exception as e:
             st.error("No leaderboard generated yet!")
@@ -204,7 +204,7 @@ def main():
         st.title("Leaderboard - Track 2")
         try:
             # Assuming your Track 2 leaderboard HTML file is named "leaderboard_t2.html"
-            leaderboard_html = get_leaderboard_html(file_name="day2/leaderboard_t2.html")
+            leaderboard_html = get_leaderboard_html(file_name="day2/t2/leaderboard_t2.html")
             st.components.v1.html(leaderboard_html, height=600, scrolling=True)
         except Exception as e:
             st.error("No leaderboard generated yet!")
