@@ -1,15 +1,12 @@
 import os
 import sys
 import time
-import ast
-import tempfile
 import multiprocessing
 from typing import Dict, Any, List, Callable, Optional, Tuple
 
 # google cloud storage and streamlit imports
 from google.cloud import storage
 from google.oauth2 import service_account
-import streamlit as st
 
 # Required imports for multiprocessing with dill serialization.
 import dill
@@ -25,10 +22,11 @@ from hackathon_utils import load_student_algorithms
 
 from bio_model import (
     evaluate_student_solution,
-    genetic_algorithm,
     generate_training_data,
     generate_test_data,
     true_model_day2,
+    fitness_function,
+    candidate_models,
 )
 
 RESULTS_DIR: str = "day_2_md/md_hackathon/admin/results"
@@ -39,61 +37,27 @@ CREDENTIALS_FILE: str = (
 )
 
 
-class QueueWriter:
-    """
-    Custom stdout writer that sends output lines to a multiprocessing Queue.
-    """
-
-    def __init__(self, queue: multiprocessing.Queue, original: Any) -> None:
-        self.queue = queue
-        self.original = original
-        self.buffer: str = ""
-
-    def write(self, msg: str) -> None:
-        self.buffer += msg
-        # If a newline is encountered, split and send complete lines.
-        if "\n" in self.buffer:
-            lines = self.buffer.splitlines(keepends=True)
-            # If the last line is incomplete, retain it in the buffer.
-            if lines and not lines[-1].endswith("\n"):
-                self.buffer = lines[-1]
-                lines = lines[:-1]
-            else:
-                self.buffer = ""
-            for line in lines:
-                self.queue.put(line)
-        self.original.write(msg)
-
-    def flush(self) -> None:
-        self.original.flush()
-
-
 def run_student_algorithm(
     serialized_alg: bytes,
     training_data: List[Dict[str, Any]],
-    generations: int,
-    population_size: int,
-    mutation_rate: float,
     best_container: Dict[str, Any],
-    output_queue: multiprocessing.Queue,
+    candidate_models: Callable = candidate_models,
+    fitness_function: Callable = fitness_function,
 ) -> None:
     """
     Child process wrapper that deserializes and runs the student algorithm.
-    Stdout is redirected to output_queue to capture printed output.
     """
     import dill  # Ensure dill is imported in the child process.
     import sys
 
     original_stdout = sys.stdout
-    sys.stdout = QueueWriter(output_queue, original_stdout)
     student_alg: Callable = dill.loads(serialized_alg)
     print("[Child] Student algorithm started.")
     # Run the student algorithm as is.
     student_alg(
         training_data=training_data,
-        generations=generations,
-        population_size=population_size,
-        mutation_rate=mutation_rate,
+        candidate_models=candidate_models,
+        basic_fitness_function=fitness_function,
         best_container=best_container,
     )
     print("[Child] Student algorithm finished.")
@@ -104,27 +68,25 @@ def run_genetic_algorithm_with_timeout(
     training_data: List[Dict[str, Any]],
     serialized_alg: bytes,
     timeout: int = 10,
-    population_size: int = 20,
 ) -> Optional[Dict[str, Any]]:
     """
     Runs the student algorithm in a separate process with a timeout.
 
-    Polls both a shared dictionary and the child's stdout (via a queue) to capture
-    the latest "best" update. When the timeout is reached, the child is terminated,
+    Polls both a shared dictionary to capture the latest "best" update.
+    When the timeout is reached, the child is terminated,
     and the most recent update is returned.
     """
     manager = multiprocessing.Manager()
     best_container: Dict[str, Any] = manager.dict()
-    output_queue: multiprocessing.Queue = multiprocessing.Queue()
 
     process = multiprocessing.Process(
         target=run_student_algorithm,
         kwargs={
             "serialized_alg": serialized_alg,
             "training_data": training_data,
-            "population_size": population_size,
+            "fitness_function": fitness_function,
+            "candidate_models": candidate_models,
             "best_container": best_container,
-            "output_queue": output_queue,
         },
     )
 
@@ -134,19 +96,6 @@ def run_genetic_algorithm_with_timeout(
 
     # Poll output_queue and best_container until timeout.
     while time.time() - start_time < timeout:
-        while not output_queue.empty():
-            try:
-                line: str = output_queue.get_nowait()
-            except Exception:
-                break
-            # Parse a line containing best parameters.
-            if "Current best parameters:" in line:
-                try:
-                    params_str = line.split("Current best parameters:")[-1].strip()
-                    best_params = ast.literal_eval(params_str)
-                    last_best = {"params": best_params}
-                except Exception:
-                    pass
         if "best" in best_container:
             last_best = best_container["best"]
         if not process.is_alive():
@@ -158,21 +107,8 @@ def run_genetic_algorithm_with_timeout(
         process.terminate()
         process.join()
 
-    while not output_queue.empty():
-        try:
-            line = output_queue.get_nowait()
-        except Exception:
-            break
-        if "Current best parameters:" in line:
-            try:
-                params_str = line.split("Current best parameters:")[-1].strip()
-                best_params = ast.literal_eval(params_str)
-                last_best = {"params": best_params}
-            except Exception:
-                pass
-
     print(
-        "[Parent] Retrieved best_container (from shared dict or parsed stdout):",
+        "[Parent] Retrieved best_container (from shared dict):",
         last_best,
     )
     return last_best
@@ -222,7 +158,6 @@ def evaluate_all_student_algorithms(
             training_data=training_data,
             serialized_alg=serialized_alg,
             timeout=5,  # Adjust timeout as needed (e.g., 5 seconds)
-            population_size=20,
         )
 
         if best_individual is None:
