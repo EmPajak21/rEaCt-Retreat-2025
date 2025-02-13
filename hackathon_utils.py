@@ -14,7 +14,7 @@ CREDENTIALS_FILE = "day_1_ddo\ddo_hackathon\intense-pixel-446617-e2-9a9d3fd50dd4
 def load_student_algorithms(
     bucket_name: str = "ddo_hackathon",
     gcloud_path: str = "",
-    func_name: str = "genetic_algorithm"
+    func_name: str = "genetic_algorithm",
 ) -> List[Callable]:
     """
     Load Python submissions from a specified folder in a GCS bucket, dynamically import
@@ -31,7 +31,9 @@ def load_student_algorithms(
     algorithms: List[Callable] = []  # List to store loaded functions
 
     # Initialize the Google Cloud Storage client using the provided credentials.
-    credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE)
+    credentials = service_account.Credentials.from_service_account_file(
+        CREDENTIALS_FILE
+    )
     client = storage.Client(credentials=credentials)
     bucket = client.bucket(bucket_name)
 
@@ -56,7 +58,9 @@ def load_student_algorithms(
                 module_name = os.path.basename(blob.name)[:-3]
                 try:
                     # Dynamically import the module from the downloaded file.
-                    spec = importlib.util.spec_from_file_location(module_name, local_path)
+                    spec = importlib.util.spec_from_file_location(
+                        module_name, local_path
+                    )
                     module = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module)
 
@@ -66,10 +70,14 @@ def load_student_algorithms(
                         # Rename the function to the module name for easier identification.
                         func.__name__ = module_name
                         algorithms.append(func)
-                        print(f"Loaded and renamed {func_name} to {module_name} from {blob.name}")
+                        print(
+                            f"Loaded and renamed {func_name} to {module_name} from {blob.name}"
+                        )
                     else:
                         # Warn if the expected function is not found.
-                        print(f"Warning: {blob.name} does not contain a {func_name} function")
+                        print(
+                            f"Warning: {blob.name} does not contain a {func_name} function"
+                        )
                 except Exception as e:
                     # Print any errors encountered during the import process.
                     print(f"Error loading {blob.name}: {e}")
@@ -77,9 +85,34 @@ def load_student_algorithms(
     # Return the list of successfully loaded functions.
     return algorithms
 
+
+def upload_to_bucket(
+    html_leaderboard, bucket_name="ddo_hackathon", file_name="leaderboard.html"
+):
+    """
+    Uploads the provided HTML string to a Cloud Storage bucket as the leaderboard file.
+
+    Args:
+        html_leaderboard (str): The HTML content of the leaderboard.
+        bucket_name (str): The name of the Cloud Storage bucket.
+        file_name (str): The destination file name (including folder path if required).
+    """
+    # Load credentials from the provided file path
+    credentials = service_account.Credentials.from_service_account_file(
+        CREDENTIALS_FILE
+    )
+
+    # Initialize the Storage client
+    client = storage.Client(credentials=credentials)
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(file_name)
+    blob.upload_from_string(html_leaderboard, content_type="text/html")
+    print(f"Uploaded leaderboard to gs://{bucket_name}/{file_name}")
+
+
 if __name__ == "__main__":
     algorithms = load_student_algorithms(
         bucket_name="ddo_hackathon",
         gcloud_path="day2/t1",
-        func_name="genetic_algorithm"
+        func_name="genetic_algorithm",
     )

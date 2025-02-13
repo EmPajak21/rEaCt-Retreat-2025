@@ -1,14 +1,12 @@
 import os
 import sys
-from google.cloud import storage
-from google.oauth2 import service_account
 
 # Add bm_routine and hackathon_utils (the parent directory) to the Python path.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Local imports (after sys.path is modified).
-from hackathon_utils import load_student_algorithms
+from hackathon_utils import load_student_algorithms, upload_to_bucket
 from benchmarking import *
 
 # Update the credentials path if needed (use forward slashes for cross-platform compatibility)
@@ -79,30 +77,6 @@ def get_leaderboard(prefix=""):
         return "<h1 style='color: red;'>No algorithms uploaded and benchmarked yet</h1>"
     html_leaderboard = ML4CE_uncon_leaderboard(traj, as_html=True)
     return html_leaderboard
-
-
-def upload_to_bucket(
-    html_leaderboard, bucket_name="ddo_hackathon", file_name="leaderboard.html"
-):
-    """
-    Uploads the provided HTML string to a Cloud Storage bucket as the leaderboard file.
-
-    Args:
-        html_leaderboard (str): The HTML content of the leaderboard.
-        bucket_name (str): The name of the Cloud Storage bucket.
-        file_name (str): The destination file name (including folder path if required).
-    """
-    # Load credentials from the provided file path
-    credentials = service_account.Credentials.from_service_account_file(
-        CREDENTIALS_FILE
-    )
-
-    # Initialize the Storage client
-    client = storage.Client(credentials=credentials)
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(file_name)
-    blob.upload_from_string(html_leaderboard, content_type="text/html")
-    print(f"Uploaded leaderboard to gs://{bucket_name}/{file_name}")
 
 
 if __name__ == "__main__":

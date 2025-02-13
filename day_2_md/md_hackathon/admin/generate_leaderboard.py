@@ -4,10 +4,6 @@ import time
 import multiprocessing
 from typing import Dict, Any, List, Callable, Optional, Tuple
 
-# google cloud storage and streamlit imports
-from google.cloud import storage
-from google.oauth2 import service_account
-
 # Required imports for multiprocessing with dill serialization.
 import dill
 import multiprocessing.reduction as reduction
@@ -18,7 +14,7 @@ reduction.ForkingPickler.dumps = dill.dumps
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from hackathon_utils import load_student_algorithms
+from hackathon_utils import load_student_algorithms, upload_to_bucket
 
 from bio_model import (
     evaluate_student_solution,
@@ -210,30 +206,6 @@ def generate_leaderboard_html(overall_results: List[Dict[str, Any]]) -> str:
 </html>
 """
     return html
-
-
-def upload_to_bucket(
-    html_leaderboard, bucket_name="ddo_hackathon", file_name="leaderboard.html"
-):
-    """
-    Uploads the provided HTML string to a Cloud Storage bucket as the leaderboard file.
-
-    Args:
-        html_leaderboard (str): The HTML content of the leaderboard.
-        bucket_name (str): The name of the Cloud Storage bucket.
-        file_name (str): The destination file name (including folder path if required).
-    """
-    # Load credentials from the provided file path
-    credentials = service_account.Credentials.from_service_account_file(
-        CREDENTIALS_FILE
-    )
-
-    # Initialize the Storage client
-    client = storage.Client(credentials=credentials)
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(file_name)
-    blob.upload_from_string(html_leaderboard, content_type="text/html")
-    print(f"Uploaded leaderboard to gs://{bucket_name}/{file_name}")
 
 
 def run_benchmark(prefix: str = "", file_name: str = "leaderboard.html") -> None:

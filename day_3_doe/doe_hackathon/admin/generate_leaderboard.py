@@ -16,6 +16,8 @@ from bio_model import (
     true_model_day3,
 )
 
+from hackathon_utils import upload_to_bucket
+
 CREDENTIALS_FILE: str = (
     "day_1_ddo/ddo_hackathon/intense-pixel-446617-e2-9a9d3fd50dd4.json"
 )
@@ -144,32 +146,6 @@ def generate_leaderboard_html(overall_results: List[Dict[str, Any]]) -> str:
 </html>
 """
     return html
-
-
-def upload_to_bucket(
-    html_leaderboard: str,
-    bucket_name: str = "ddo_hackathon",
-    file_name: str = "leaderboard.html",
-):
-    """
-    Uploads the provided HTML string to a Cloud Storage bucket as the leaderboard file.
-
-    Args:
-        html_leaderboard (str): The HTML content of the leaderboard.
-        bucket_name (str): The name of the Cloud Storage bucket.
-        file_name (str): The destination file name (including folder path if required).
-    """
-    # Load credentials from the provided file path
-    credentials = service_account.Credentials.from_service_account_file(
-        CREDENTIALS_FILE
-    )
-
-    # Initialize the Storage client
-    client = storage.Client(credentials=credentials)
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(file_name)
-    blob.upload_from_string(html_leaderboard, content_type="text/html")
-    print(f"Uploaded leaderboard to gs://{bucket_name}/{file_name}")
 
 
 def run_benchmark(prefix: str = "", file_name: str = "leaderboard.html") -> None:
