@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import pandas as pd
-from typing import List, Dict, Tuple, Any, Union, Optional
+from typing import List, Dict, Tuple, Any, Union, Optional, Callable
 
 # Constants
 TERM_NAMES = [
@@ -302,32 +302,29 @@ def genetic_algorithm(
     generations: int = 10,
     population_size: int = 30,
     mutation_rate: float = 0.1,
-    best_container: Dict[str, Any] = None  # <-- added parameter
 ) -> Dict[str, Any]:
     """
-    Genetic algorithm for model selection.
+    Genetic algorithm that performs model selection and parameter estimation.
 
     Parameters
     ----------
     training_data : List[Dict[str, Any]]
         Training data to fit the model to.
-    generations : int, optional
-        Number of generations to run, by default 10.
-    population_size : int, optional
-        Size of the population, by default 30.
-    mutation_rate : float, optional
-        Probability of mutation, by default 0.1.
+    candidate_models : Callable
+        Calculate derivatives based on selected growth mechanisms.
+    basic_fitness_function : Callable
+        Evaluates fitness of a candidate solution based on model performance.
+    best_container : dict
+        IMPORTANT! Stores the best candidate found.
 
     Returns
     -------
     Dict[str, Any]
         Best individual found (mask and parameters).
-
-    Raises
-    ------
-    ValueError
-        If population_size is not even.
     """
+    generations = 1000
+    mutation_rate = 0.1
+
     if population_size % 2 != 0:
         raise ValueError("Population size must be even")
 
@@ -336,7 +333,7 @@ def genetic_algorithm(
     # Initialize population
     population = [
         {
-            "mask": np.random.randint(0, 2, size=len(TERM_NAMES)),
+            "mask": np.random.randint(0, 2, size=9),
             "params": [
                 np.random.uniform(0.1, 1.0),  # mu_max
                 np.random.uniform(0.5, 5.0),  # Ks
@@ -378,7 +375,7 @@ def genetic_algorithm(
             print("Parameters:", best_individual["params"])
             print(
                 "Active terms:",
-                [TERM_NAMES[i] for i, m in enumerate(best_individual["mask"]) if m],
+                [f"Term {i}" for i, m in enumerate(best_individual["mask"]) if m],
             )
             if best_errors:
                 print("Errors by experiment:", best_errors)
@@ -407,7 +404,7 @@ def genetic_algorithm(
             child_mask = np.array(
                 [
                     np.random.choice([parent1["mask"][j], parent2["mask"][j]])
-                    for j in range(len(TERM_NAMES))
+                    for j in range(9)
                 ]
             )
 
@@ -419,7 +416,7 @@ def genetic_algorithm(
 
             # Mutation
             if np.random.rand() < mutation_rate:
-                child_mask[np.random.randint(0, len(TERM_NAMES))] ^= 1
+                child_mask[np.random.randint(0, 9)] ^= 1
                 param_idx = np.random.randint(0, n_params)
                 child_params[param_idx] *= np.random.uniform(0.8, 1.2)
 
@@ -438,10 +435,7 @@ def genetic_algorithm(
                 if current_errors:
                     print("Current errors by experiment:", current_errors)
 
-    _plot_evolution(fitness_history, param_history)
-
     return best_individual
-
 
 def plot_results(
     training_data: List[Dict[str, Any]],
