@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import pandas as pd
 from typing import List, Dict, Tuple, Any, Union, Optional, Callable
+import random 
 
 # Constants
 TERM_NAMES = [
@@ -434,6 +435,11 @@ def genetic_algorithm(
                 )[1]
                 if current_errors:
                     print("Current errors by experiment:", current_errors)
+        
+        # Catch all masks zero i.e., no active leaves
+        if sum(best_individual['mask']) == 0:
+            random_idx = random.randint(0, len(best_individual['mask']) - 1)
+            best_individual['mask'][random_idx] = 1
 
     return best_individual
 
