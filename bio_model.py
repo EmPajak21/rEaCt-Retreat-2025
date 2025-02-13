@@ -186,10 +186,8 @@ def generate_training_data(
 
     Returns
     -------
-    Tuple[List[Dict[str, Any]], pd.DataFrame]
-        Training data in two formats:
-        - List of dictionaries containing time points and noisy data
-        - DataFrame with all experiments and conditions
+    List[Dict[str, Any]]
+        Training data as list of dictionaries containing time points and noisy data
 
     Raises
     ------
@@ -204,17 +202,6 @@ def generate_training_data(
 
     t = np.linspace(0, 10, n_timepoints)
     training_data = []
-    df_data = {
-        "time": [],
-        "experiment": [],
-        "biomass": [],
-        "substrate": [],
-        "product": [],
-        "inhibitor": [],
-        "initial_biomass": [],
-        "initial_substrate": [],
-        "initial_inhibitor": [],
-    }
 
     for i, y0 in enumerate(initial_conditions):
         # Generate clean data
@@ -227,19 +214,7 @@ def generate_training_data(
         # Store data
         training_data.append({"t": t, "data": noisy_data, "initial_conditions": y0})
 
-        # Update DataFrame data
-        n_points = len(t)
-        df_data["time"].extend(t)
-        df_data["experiment"].extend([i + 1] * n_points)
-        df_data["biomass"].extend(noisy_data[:, 0])
-        df_data["substrate"].extend(noisy_data[:, 1])
-        df_data["product"].extend(noisy_data[:, 2])
-        df_data["inhibitor"].extend(noisy_data[:, 3])
-        df_data["initial_biomass"].extend([y0[0]] * n_points)
-        df_data["initial_substrate"].extend([y0[1]] * n_points)
-        df_data["initial_inhibitor"].extend([y0[3]] * n_points)
-
-    return training_data, pd.DataFrame(df_data)
+    return training_data
 
 
 def generate_test_data(
