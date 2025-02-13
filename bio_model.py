@@ -294,9 +294,7 @@ def fitness_function(
         except:
             return float("-inf"), None
 
-    complexity_penalty = 0.05 * n_active_terms
-
-    return -(total_error + complexity_penalty), errors_by_experiment
+    return -total_error, errors_by_experiment
 
 
 def genetic_algorithm(
@@ -358,7 +356,7 @@ def genetic_algorithm(
     for gen in range(generations):
         # Evaluate fitness
         fitness_and_errors = [
-            fitness_function(ind["mask"], ind["params"], training_data)
+            basic_fitness_function(ind["mask"], ind["params"], training_data)
             for ind in population
         ]
         fitness = [f[0] for f in fitness_and_errors]
