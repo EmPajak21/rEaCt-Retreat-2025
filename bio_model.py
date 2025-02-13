@@ -311,6 +311,8 @@ def genetic_algorithm(
     ----------
     training_data : List[Dict[str, Any]]
         Training data to fit the model to.
+    population_size : int
+        Number of individuals in the population.
     candidate_models : Callable
         Calculate derivatives based on selected growth mechanisms.
     basic_fitness_function : Callable
