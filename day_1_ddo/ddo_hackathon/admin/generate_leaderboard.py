@@ -29,10 +29,15 @@ def run_benchmark(prefix=""):
 
     # Define additional parameters for ML4CE_uncon_eval
     home_dir = ""
-    N_x_l = [2]
-    f_eval_l = [50]
-    functions_test = ["Rosenbrock_f", "Ackley_f"]
-    reps = 3
+    N_x_l = [10]
+    functions_test = ["Rosenbrock_f"]
+    reps = 10
+
+    # Track-specific functione evaluation budget
+    if prefix.endswith("1"):
+        f_eval_l = [200]
+    elif prefix.endswith("2"):
+        f_eval_l = [100]
 
     # Run the benchmark
     try:
