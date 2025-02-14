@@ -1,17 +1,18 @@
 import numpy as np
 from bio_model import fitness_function
 import pickle
+from typing import List, Dict, Any, Literal
 
 with open("training_data_day2.pickle", "rb") as handle:
     training_data = pickle.load(handle)
 
 
 def local_search_optimize(
-    params_start,
-    masks_start,
-    training_data,
-    iterations=10000,
-    samples=10,
+    params_start: List[float],
+    masks_start: List[Literal[0, 1]],
+    training_data: List[Dict[str, Any]],
+    iterations: int,
+    samples: int,
 ):
     """
     Local search optimizer for continuous and binary variables, minimizing obj_fn.
