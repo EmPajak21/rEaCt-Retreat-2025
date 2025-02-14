@@ -10,13 +10,44 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from benchmarking import Test_function
 
 
+TRACK = None  # Add this near the top (outside any class or function).
+
+
+def get_algo_func():
+    """
+    Attempt to import the student's algorithm function based on the track:
+    - For Track 1: Expect `particle_swarm`
+    - For Track 2: Expect `your_alg`
+    """
+    if TRACK == "Track 1":
+        try:
+            from student_submission import particle_swarm
+
+            return particle_swarm
+        except ImportError:
+            raise ImportError(
+                "For Track 1, please define `particle_swarm` in your submission!"
+            )
+    elif TRACK == "Track 2":
+        try:
+            from student_submission import your_alg
+
+            return your_alg
+        except ImportError:
+            raise ImportError(
+                "For Track 2, please define `your_alg` in your submission!"
+            )
+    else:
+        raise ValueError("Unknown track or TRACK not set. Use 'Track 1' or 'Track 2'.")
+
+
 class TestStudentSubmission(unittest.TestCase):
     """
     Unit test suite for validating the student's submission.
 
-    The student's code must define a function `your_alg` with the following signature:
+    The student's code must define a function `your_alg` or `particle_swarm` with the following signature:
 
-        your_alg(f, x_dim, bounds, iter_tot)
+        func(f, x_dim, bounds, iter_tot)
 
     The function should return:
       - opt_x: a NumPy array,
@@ -43,16 +74,18 @@ class TestStudentSubmission(unittest.TestCase):
 
     def test_function_signature(self):
         """
-        Test that the function `your_alg` is defined in the student's submission.
+        Test that the function `your_alg` or `particle_swarm` is defined in the student's submission.
         """
         try:
-            from student_submission import your_alg  # noqa: F401
+            func = get_algo_func()
         except ImportError:
-            self.fail("Function `your_alg` not found in your submission!")
+            self.fail(
+                "Neither function `your_alg` nor `particle_swarm` found in your submission!"
+            )
 
     def test_function_output(self):
         """
-        Test the output types and constraints from `your_alg`.
+        Test the output types and constraints from the student's function.
 
         Expects:
             - opt_x: a numpy.ndarray,
@@ -60,9 +93,9 @@ class TestStudentSubmission(unittest.TestCase):
             - team_name: a list with exactly one element,
             - names: a list with at least one element.
         """
-        from student_submission import your_alg
+        func = get_algo_func()
 
-        opt_x, opt_fun, team_name, names = your_alg(
+        opt_x, opt_fun, team_name, names = func(
             self.f, self.x_dim, self.bounds, self.iter_tot
         )
 

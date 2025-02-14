@@ -51,7 +51,7 @@ def save_valid_submission(code, team_name, track, bucket_name="ddo_hackathon"):
     return file_name
 
 
-def run_unit_tests(code, team_name):
+def run_unit_tests(code, team_name, track):
     """
     Run unit tests on the submitted code from test_framework.py.
 
@@ -92,6 +92,9 @@ def run_unit_tests(code, team_name):
         )
         test_framework = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(test_framework)
+        
+        # Add the following line:
+        test_framework.TRACK = track
 
         loader = unittest.TestLoader()
         suite = loader.loadTestsFromModule(test_framework)
@@ -175,7 +178,7 @@ def main():
                 st.code(code_input, language="python")
 
                 # Run unit tests on the submitted code.
-                test_results = run_unit_tests(code_input, team_name)
+                test_results = run_unit_tests(code_input, team_name, track)
 
                 with status_container:
                     if "All tests passed successfully!" in test_results:

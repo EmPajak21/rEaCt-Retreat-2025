@@ -21,7 +21,7 @@ def particle_swarm(f, x_dim, bounds, iter_tot=100):
         Best found position, best fitness value, team name, and names (for logging purposes).
     """
     # Step 1: Initialize swarm
-    swarm_size = 5  # Number of particles in the swarm
+    swarm_size = 10  # Number of particles in the swarm
     
     # Initialize particle positions randomly within bounds
     positions = np.random.uniform(0, 1, (swarm_size, x_dim)) * (bounds[:, 1] - bounds[:, 0]) + bounds[:, 0]
@@ -46,7 +46,7 @@ def particle_swarm(f, x_dim, bounds, iter_tot=100):
     # Optimization loop
     for iter_num in range(max_iterations):
         # Step 3: Update inertia weight (dynamically decreases over iterations)
-        w = 0.7 - iter_num / max_iterations * 0.5  
+        w = 0.7 - iter_num / max_iterations * 0.1  
         
         # Step 4: Generate random coefficients for velocity update
         r1, r2 = np.random.rand(swarm_size, x_dim), np.random.rand(swarm_size, x_dim)
