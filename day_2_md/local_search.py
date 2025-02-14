@@ -39,8 +39,8 @@ def local_search_optimize(
     best_masks : np.ndarray
         Binary mask at the best found solution.
     """
-    radius=1.0
-    flip_prob=0.5
+    radius = 1.0
+    flip_prob = 0.5
 
     best_params = np.array(params_start, dtype=float)
     best_masks = np.array(masks_start, dtype=int)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         masks_start=masks_init,
         training_data=training_data,
         iterations=100,
-        samples=10,
+        samples=30,
     )
 
     print("\nFinal Results:")
