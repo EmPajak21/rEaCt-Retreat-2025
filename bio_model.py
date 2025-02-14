@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import pandas as pd
 from typing import List, Dict, Tuple, Any, Union, Optional, Callable
-import random 
+import random
 
 # Constants
 TERM_NAMES = [
@@ -133,7 +133,9 @@ def candidate_models(
 
     # Product Inhibition Factor (Competitive)
     if mask[3]:
-        growth *= (Ks + S) / (S + Ks + (Ks * P / Kp)) # This term is modified so that is can be combined with mask 0 or 1 for a correct inhibition
+        growth *= (
+            (Ks + S) / (S + Ks + (Ks * P / Kp))
+        )  # This term is modified so that is can be combined with mask 0 or 1 for a correct inhibition
 
     # Non-Competitive Product Inhibition
     if mask[4]:
@@ -292,17 +294,15 @@ def fitness_function(
         except:
             return float("-inf"), None
 
-    complexity_penalty = 0.05 * n_active_terms
-
-    return -(total_error + complexity_penalty), errors_by_experiment
+    return -total_error, errors_by_experiment
 
 
 def genetic_algorithm(
     training_data: List[Dict[str, Any]],
-    *,
-    generations: int = 10,
-    population_size: int = 30,
-    mutation_rate: float = 0.1,
+    population_size: int = 20,
+    candidate_models: Callable = candidate_models,
+    basic_fitness_function: Callable = fitness_function,
+    best_container=None,
 ) -> Dict[str, Any]:
     """
     Genetic algorithm that performs model selection and parameter estimation.
@@ -311,6 +311,8 @@ def genetic_algorithm(
     ----------
     training_data : List[Dict[str, Any]]
         Training data to fit the model to.
+    population_size : int
+        Number of individuals in the population.
     candidate_models : Callable
         Calculate derivatives based on selected growth mechanisms.
     basic_fitness_function : Callable
@@ -356,7 +358,7 @@ def genetic_algorithm(
     for gen in range(generations):
         # Evaluate fitness
         fitness_and_errors = [
-            fitness_function(ind["mask"], ind["params"], training_data)
+            basic_fitness_function(ind["mask"], ind["params"], training_data)
             for ind in population
         ]
         fitness = [f[0] for f in fitness_and_errors]
@@ -380,11 +382,11 @@ def genetic_algorithm(
             )
             if best_errors:
                 print("Errors by experiment:", best_errors)
-            
+
             # Update the shared container, if provided
             if best_container is not None:
                 best_container["best"] = best_individual
-                
+
         # Track history
         fitness_history.append(best_fitness)
         param_history.append(
@@ -435,13 +437,14 @@ def genetic_algorithm(
                 )[1]
                 if current_errors:
                     print("Current errors by experiment:", current_errors)
-        
+
         # Catch all masks zero i.e., no active leaves
-        if sum(best_individual['mask']) == 0:
-            random_idx = random.randint(0, len(best_individual['mask']) - 1)
-            best_individual['mask'][random_idx] = 1
+        if sum(best_individual["mask"]) == 0:
+            random_idx = random.randint(0, len(best_individual["mask"]) - 1)
+            best_individual["mask"][random_idx] = 1
 
     return best_individual
+
 
 def plot_results(
     training_data: List[Dict[str, Any]],
@@ -487,7 +490,7 @@ def plot_results(
                 color=color,
                 marker="o",
                 alpha=0.6,
-                label=f"Training Set {i+1}",
+                label=f"Training Set {i + 1}",
             )
 
             # Training predictions (dashed line)
@@ -506,7 +509,7 @@ def plot_results(
                 color=color,
                 linestyle="--",
                 alpha=0.8,
-                label=f"Training Prediction {i+1}",
+                label=f"Training Prediction {i + 1}",
             )
 
         # Plot test data and predictions
@@ -520,7 +523,7 @@ def plot_results(
                     color=color,
                     marker="s",
                     alpha=0.6,
-                    label=f"Test Set {i+1}",
+                    label=f"Test Set {i + 1}",
                 )
                 # Test predictions (dashed line)
                 plt.plot(
@@ -529,7 +532,7 @@ def plot_results(
                     color=color,
                     linestyle="--",
                     alpha=0.8,
-                    label=f"Test Prediction {i+1}",
+                    label=f"Test Prediction {i + 1}",
                 )
 
         plt.xlabel("Time")
