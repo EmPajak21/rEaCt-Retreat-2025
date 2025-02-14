@@ -22,6 +22,16 @@ def save_valid_submission(code, team_name, track, bucket_name="ddo_hackathon"):
     initializes the storage client, and uploads the submitted code
     as a Python file to the specified bucket under a folder corresponding
     to the selected track.
+
+    Args:
+    code (str): The Python code to upload.
+    team_name (str): The team name to create a unique filename.
+    track (str): The selected track ("Track 1" or "Track 2").
+    bucket_name (str, optional): The name of the GCS bucket.
+        Defaults to "ddo_hackathon".
+
+    Returns:
+        str: The name (including folder path) of the uploaded file.
     """
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
@@ -46,8 +56,18 @@ def save_valid_submission(code, team_name, track, bucket_name="ddo_hackathon"):
 
 def run_unit_tests(code, team_name, track):
     """
-    Run unit tests on the submitted code. We dynamically choose 
+    Run unit tests on the submitted code. We dynamically choose
     the test framework depending on the track.
+
+    Args:
+        code (str): The submitted Python code.
+        team_name (str): The team name used for naming the temporary file.
+        track (str): The selected track ("Track 1" or "Track 2").
+
+    Returns:
+        str: A message indicating test success or a summary of failures/errors.
+        Run unit tests on the submitted code. We dynamically choose
+        the test framework depending on the track.
     """
     buffer = StringIO()
     original_stdout = sys.stdout
@@ -61,7 +81,9 @@ def run_unit_tests(code, team_name, track):
             f.write(code)
 
         # 2. Dynamically load the student's code as a module.
-        spec = importlib.util.spec_from_file_location("student_submission", temp_filepath)
+        spec = importlib.util.spec_from_file_location(
+            "student_submission", temp_filepath
+        )
         student_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(student_module)
         # Register the module so the test framework can import it if needed.
@@ -78,10 +100,14 @@ def run_unit_tests(code, team_name, track):
             )
 
         if not os.path.isfile(relative_path):
-            return f"Error: Could not find test framework for {track} at {relative_path}"
+            return (
+                f"Error: Could not find test framework for {track} at {relative_path}"
+            )
 
         # 4. Load the test framework
-        spec = importlib.util.spec_from_file_location("admin.test_framework", relative_path)
+        spec = importlib.util.spec_from_file_location(
+            "admin.test_framework", relative_path
+        )
         test_framework = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(test_framework)
 
@@ -126,6 +152,13 @@ def run_unit_tests(code, team_name, track):
 def get_leaderboard_html(bucket_name="ddo_hackathon", file_name="leaderboard.html"):
     """
     Downloads the leaderboard HTML file from a Google Cloud Storage bucket.
+
+    Args:
+        bucket_name: str, optional. Google Cloud Storage bucket.
+        file_name: str, optional. Name of the file to download from the bucket.
+
+    Returns:
+        str: The content of the HTML file as a string.
     """
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
