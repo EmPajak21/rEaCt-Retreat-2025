@@ -3,6 +3,7 @@ import sys
 import time
 import multiprocessing
 from typing import Dict, Any, List, Callable, Optional, Tuple
+import pickle
 
 # Required imports for multiprocessing with dill serialization.
 import dill
@@ -12,6 +13,7 @@ reduction.ForkingPickler.dumps = dill.dumps
 
 # Add parent directories to the Python path.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from hackathon_utils import load_student_algorithms, upload_to_bucket
@@ -114,16 +116,10 @@ def get_data() -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
     Generate training and test data.
     """
-    ic_train: List[List[float]] = [
-        [0.1, 10.0, 0.0, 1.0],
-        [0.2, 8.0, 0.0, 2.0],
-        [0.3, 6.0, 0.0, 0.5],
-        [0.3, 8.0, 0.2, 1.0],
-    ]
     print("Generating training data...")
-    training_data, training_df = generate_training_data(
-        initial_conditions=ic_train, true_model=true_model_day2
-    )
+    with open("day_2_md/training_data_day2.pickle", "rb") as handle:
+        training_data = pickle.load(handle)
+
     ic_test: List[List[float]] = [
         [0.05, 15.0, 0.0, 2.5],
         [0.4, 3.0, 0.0, 0.2],
