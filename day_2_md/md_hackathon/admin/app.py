@@ -22,26 +22,14 @@ def save_valid_submission(code, team_name, track, bucket_name="ddo_hackathon"):
     initializes the storage client, and uploads the submitted code
     as a Python file to the specified bucket under a folder corresponding
     to the selected track.
-
-    Args:
-        code (str): The Python code to upload.
-        team_name (str): The team name to create a unique filename.
-        track (str): The selected track ("Track 1" or "Track 2").
-        bucket_name (str, optional): The name of the GCS bucket.
-            Defaults to "ddo_hackathon".
-
-    Returns:
-        str: The name (including folder path) of the uploaded file.
     """
-    # Load credentials from Streamlit secrets (expects a JSON-compatible dict)
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
     )
-    # Initialize the Storage client with specified project and credentials
     client = storage.Client(project="intense-pixel-446617-e2", credentials=credentials)
     bucket = client.bucket(bucket_name)
 
-    # Determine folder path based on track selection.
+    # Determine folder path based on track selection
     if track == "Track 1":
         folder_path = "day2/t1"
     else:
@@ -51,64 +39,66 @@ def save_valid_submission(code, team_name, track, bucket_name="ddo_hackathon"):
     file_name = f"{folder_path}/{team_name}_submission.py"
     blob = bucket.blob(file_name)
 
-    # Upload the code to the bucket with the appropriate content type.
+    # Upload the code to the bucket
     blob.upload_from_string(code, content_type="text/x-python")
     return file_name
 
 
-def run_unit_tests(code, team_name):
+def run_unit_tests(code, team_name, track):
     """
-    Run unit tests on the submitted code from test_framework.py.
-
-    Writes the code to a temporary file, dynamically loads it as a module,
-    and runs tests using a test framework located in the specified path.
-
-    Args:
-        code (str): The submitted Python code.
-        team_name (str): The team name used for naming the temporary file.
-
-    Returns:
-        str: A message indicating test success or a summary of failures/errors.
+    Run unit tests on the submitted code. We dynamically choose 
+    the test framework depending on the track.
     """
     buffer = StringIO()
+    original_stdout = sys.stdout
     sys.stdout = buffer
 
     temp_filepath = f"{team_name}_temp_submission.py"
 
     try:
-        # Write the submitted code to a temporary file.
+        # 1. Write the submitted code to a temporary file.
         with open(temp_filepath, "w") as f:
             f.write(code)
-        # Dynamically load the student's code as a module.
-        spec = importlib.util.spec_from_file_location(
-            "student_submission", temp_filepath
-        )
+
+        # 2. Dynamically load the student's code as a module.
+        spec = importlib.util.spec_from_file_location("student_submission", temp_filepath)
         student_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(student_module)
-        # Register the module so the test framework can import it.
+        # Register the module so the test framework can import it if needed.
         sys.modules["student_submission"] = student_module
 
-        # Define the relative path to the test framework file.
-        relative_path = os.path.join(
-            "day_2_md", "md_hackathon", "admin", "test_framework.py"
-        )
-        spec = importlib.util.spec_from_file_location(
-            "admin.test_framework", relative_path
-        )
+        # 3. Pick the correct test framework based on track
+        if track == "Track 1":
+            relative_path = os.path.join(
+                "day_2_md", "md_hackathon", "admin", "test_framework_t1.py"
+            )
+        else:
+            relative_path = os.path.join(
+                "day_2_md", "md_hackathon", "admin", "test_framework_t2.py"
+            )
+
+        if not os.path.isfile(relative_path):
+            return f"Error: Could not find test framework for {track} at {relative_path}"
+
+        # 4. Load the test framework
+        spec = importlib.util.spec_from_file_location("admin.test_framework", relative_path)
         test_framework = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(test_framework)
 
+        # 5. Run the tests
         loader = unittest.TestLoader()
         suite = loader.loadTestsFromModule(test_framework)
         runner = unittest.TextTestRunner(stream=buffer, verbosity=2)
         result = runner.run(suite)
-        print(result.errors, result.failures)
+
+        # 6. Collect results
         errors = result.errors
         failures = result.failures
 
         if not errors and not failures:
             return "All tests passed successfully! 🎉"
 
+        # If there are failures or errors, return them in a short summary
         output_lines = []
         if failures:
             output_lines.append("\n### Failures ###")
@@ -116,30 +106,26 @@ def run_unit_tests(code, team_name):
                 f"{test}: {failure.splitlines()[-1]}" for test, failure in failures
             )
         if errors:
-            output_lines.append("\n### Failures ###")
+            output_lines.append("\n### Errors ###")
             output_lines.extend(
                 f"{test}: {error.splitlines()[-1]}" for test, error in errors
             )
 
         return "\n".join(filter(None, output_lines))
+
     except Exception as e:
-        return f"An error occurred while creating or writing the temporary file: {e}"
+        return f"An error occurred during test execution: {str(e)}"
+
     finally:
+        # Clean up and restore stdout
         if os.path.exists(temp_filepath):
             os.remove(temp_filepath)
-        sys.stdout = sys.__stdout__
+        sys.stdout = original_stdout
 
 
 def get_leaderboard_html(bucket_name="ddo_hackathon", file_name="leaderboard.html"):
     """
     Downloads the leaderboard HTML file from a Google Cloud Storage bucket.
-
-    Args:
-        bucket_name: str, optional. Google Cloud Storage bucket.
-        file_name: str, optional. Name of the file to download from the bucket.
-
-    Returns:
-        str: The content of the HTML file as a string.
     """
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
@@ -164,7 +150,7 @@ def main():
             "Enter your team name:",
             help="Enter your team's name before submitting code.",
         )
-        # Add a radio button for track selection.
+        # A radio button for track selection
         track = st.radio(
             "Select Your Track:",
             options=["Track 1", "Track 2"],
@@ -184,15 +170,15 @@ def main():
         if submit_button:
             if not team_name or not code_input.strip():
                 with status_container:
-                    st.error("Please provide both team name and Python code.")
+                    st.error("Please provide both a team name and Python code.")
             else:
                 with status_container:
                     st.info("Processing your submission...")
                 st.write("### Your Submitted Code:")
                 st.code(code_input, language="python")
 
-                # Run unit tests on the submitted code.
-                test_results = run_unit_tests(code_input, team_name)
+                # Run the unit tests for the chosen track
+                test_results = run_unit_tests(code_input, team_name, track)
 
                 with status_container:
                     if "All tests passed successfully!" in test_results:
