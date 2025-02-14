@@ -165,7 +165,7 @@ def main():
             )
             st.components.v1.html(leaderboard_html, height=600, scrolling=True)
         except Exception as e:
-            st.error(f"No leaderboard generated yet! Error: {e}")
+            st.error(f"No leaderboard generated yet!")
 
     # Leaderboard Tab for Track 2
     with tabs[2]:
@@ -177,7 +177,7 @@ def main():
             )
             st.components.v1.html(leaderboard_html, height=600, scrolling=True)
         except Exception as e:
-            st.error(f"No leaderboard generated yet! Error: {e}")
+            st.error(f"No leaderboard generated yet!")
 
 
 if __name__ == "__main__":
