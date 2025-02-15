@@ -35,15 +35,15 @@ This will create a Conda environment with Python 3.11 and the required packages.
 ## Activating the Environment
 
 To activate the environment, run:
-```sh
+```
 conda activate cdt_alicante311
 ```
 
 ## Verifying Installation
 
 To check if the installation was successful, run:
-```sh
-python -c "import numpy, scipy, tqdm, cobyqa, matplotlib; print('All packages imported successfully!')"
+```
+python -c "import numpy, scipy, tqdm, cobyqa, matplotlib, jupyter; print('All packages imported successfully!')"
 ```
 
 If there are no errors, the environment is set up correctly.
@@ -51,11 +51,11 @@ If there are no errors, the environment is set up correctly.
 ## Deactivating and Removing the Environment
 
 To deactivate the environment, use:
-```sh
+```
 conda deactivate
 ```
 
 To remove the environment completely:
-```sh
+```
 conda env remove -n cdt_alicante311
 ```
