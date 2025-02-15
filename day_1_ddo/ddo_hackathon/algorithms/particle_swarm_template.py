@@ -3,7 +3,7 @@ import numpy as np
 # Resource: https://web2.qatar.cmu.edu/~gdicaro/15382/additional/CompIntelligence-Engelbrecht-ch16.pdf
 # First 4 pages give sufficient detail, equations, etc. to code PSO
 
-def your_alg(f, x_dim, bounds, iter_tot=100):
+def particle_swarm(f, x_dim, bounds, iter_tot=100):
     """
     Particle Swarm Optimization (PSO) algorithm template.
     
@@ -24,6 +24,7 @@ def your_alg(f, x_dim, bounds, iter_tot=100):
     
     
     # Step 2: Compute maximum iterations based on evaluation budget
+    max_iterations = iter_tot // swarm_size
     
     
     # Optimization loop

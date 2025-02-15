@@ -174,7 +174,7 @@ def main():
     # Create three tabs: one for submission and two for leaderboards.
     tabs = st.tabs(["Submission Portal", "Leaderboard Track 1", "Leaderboard Track 2"])
 
-    # Submission Tab
+    # --- Submission Tab ---
     with tabs[0]:
         st.title("Day 2: Model Discrimination Submission Portal")
         status_container = st.container()
@@ -193,7 +193,7 @@ def main():
         code_input = st.text_area(
             "Python Code",
             "from bio_model import candidate_models, fitness_function\n"
-            "from typing import List, Dict, Tuple, Any, Union, Optional, Callable\n"
+            "from typing import List, Dict, Tuple, Any, Union, Optional, Callable, Literal\n"
             "import numpy as np",
             height=600,
             key="code_input",
@@ -224,11 +224,16 @@ def main():
                     else:
                         st.error(test_results)
 
-    # Leaderboard Tab for Track 1
+    # --- Leaderboard Tab for Track 1 ---
     with tabs[1]:
         st.title("Leaderboard - Track 1")
+
+        # Button press will trigger the app to re-run automatically
+        if st.button("Refresh Leaderboard T1"):
+            pass
+
         try:
-            # Assuming your Track 1 leaderboard HTML file is named "leaderboard_t1.html"
+            # Load the updated leaderboard
             leaderboard_html = get_leaderboard_html(
                 file_name="day2/t1/leaderboard_t1.html"
             )
@@ -236,11 +241,14 @@ def main():
         except Exception as e:
             st.error("No leaderboard generated yet!")
 
-    # Leaderboard Tab for Track 2
+    # --- Leaderboard Tab for Track 2 ---
     with tabs[2]:
         st.title("Leaderboard - Track 2")
+
+        if st.button("Refresh Leaderboard T2"):
+            pass
+
         try:
-            # Assuming your Track 2 leaderboard HTML file is named "leaderboard_t2.html"
             leaderboard_html = get_leaderboard_html(
                 file_name="day2/t2/leaderboard_t2.html"
             )

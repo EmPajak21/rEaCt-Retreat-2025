@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
-import pandas as pd
 from typing import List, Dict, Tuple, Any, Union, Optional, Callable
 import random
 
@@ -172,7 +171,7 @@ def generate_training_data(
     true_model: callable = true_model_day2,
     n_timepoints: int = 20,
     noise_level: float = 0.05,
-) -> Tuple[List[Dict[str, Any]], pd.DataFrame]:
+) -> List[Dict[str, Any]]:
     """
     Generate training data with noise.
 
