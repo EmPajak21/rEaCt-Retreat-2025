@@ -6,7 +6,6 @@ Created on Sun Aug 20 15:12:20 2023
 """
 
 from scipy.optimize import minimize
-from scipy.optimize import direct, Bounds
 import scipy
 import numpy as np
 
