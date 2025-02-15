@@ -1022,7 +1022,6 @@ def ML4CE_uncon_leaderboard(trajectories, as_html=False):
             sorted_ranking = sorted(ranking.items(), key=lambda x: x[1])
 
             # Add leaderboard section
-            html_parts.append(f"<h2>Leaderboard for {func_key} | {dim_key}</h2>")
             html_parts.append("<table>")
             html_parts.append("<tr><th>Rank</th><th>Algorithm</th><th>Avg Final Value</th></tr>")
             for i, (alg, avg_val) in enumerate(sorted_ranking, start=1):
