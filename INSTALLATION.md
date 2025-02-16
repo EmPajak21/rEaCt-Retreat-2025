@@ -27,7 +27,7 @@ Alternatively, install Anaconda from [Anaconda's official website](https://www.a
 Once Conda is installed, create the `cdt_alicante311` environment using the provided YAML file:
 
 ```sh
-conda env create -f environment.yml
+conda env create -f environment_students.yml
 ```
 
 This will create a Conda environment with Python 3.11 and the required packages.
