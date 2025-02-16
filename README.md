@@ -27,7 +27,8 @@ Below are the links to detailed instructions for each day:
 ## Hackathons  
 Each hackathon will have **two tracks**, which are pre-assigned:  
 - 🛑 **Track 1** is **not allowed** to use **LLMs (e.g., ChatGPT) for assistance**.  
-- ✅ **Track 2** has no such restriction.  
+- ✅ **Track 2** has no such restriction.
+- Each track will compete **individually**. 
 
 💡 Stay engaged and make the most of the experience—participation will definitely be worth it! 😉  
 

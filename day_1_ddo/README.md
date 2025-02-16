@@ -24,7 +24,7 @@ The hackathon is designed to apply concepts from the lectures and tutorials to a
 ### **Tracks**  
 - **Track 1: Particle Swarm Optimisation (PSO)**  
   - Participants will implement **PSO**, using a **template provided in** [`ddo_hackathon/algorithms/particle_swarm.py`](./ddo_hackathon/algorithms/particle_swarm.py).  
-  - **No LLMs (e.g., ChatGPT) allowed.**  
+  - 🛑 **No LLMs (e.g., ChatGPT) allowed.**  
 - **Track 2: DDO Algorithm of Your Choice**  
   - Participants will develop their own optimisation algorithm.
   - A template for the required signature is provided in [`ddo_hackathon/algorithms/your_alg.py`](./ddo_hackathon/algorithms/your_alg.py).

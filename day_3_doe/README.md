@@ -18,9 +18,8 @@ The hackathon builds on Day 2’s challenge:
   📄 [`doe_hackathon/doe_hackathon.ipynb`](./doe_hackathon/doe_hackathon.ipynb)  
 
 ### **Tracks**  
-- **Track 1:** Cannot use LLMs and will be provided with a **basic genetic algorithm template**.  
-- **Track 2:** Can use LLMs but must develop their own approach.  
-- Each track will compete **individually**.  
+- **Track 1:** 🛑 Cannot use LLMs and will be provided with a **basic genetic algorithm template**.  
+- **Track 2:** Can use LLMs but must develop their own approach.   
 
 ## Submissions  
 

@@ -19,7 +19,7 @@ The hackathon challenges participants to **identify the correct model structure 
 ### **Tracks**  
 - **Track 1: Local Random Search**
   - Participants will implement a **Local Random Search**, using a **template provided in the hackathon workbook**.  
-  - **No LLMs (e.g., ChatGPT) allowed.**  
+  - 🛑 **No LLMs (e.g., ChatGPT) allowed.**  
 - **Track 2: Genetic Algorithm**
   - Participants will develop a genetic algorithm.
   - The signature and criteria for the benchmarking are explained in the hackathon notebook.
